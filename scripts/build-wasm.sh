@@ -12,16 +12,29 @@ GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Root directory
-ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-RUST_DIR="$ROOT_DIR/rust-modules"
-FRONTEND_WASM_DIR="$ROOT_DIR/frontend/src/wasm"
+# Script and project directories
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+RUST_DIR="$PROJECT_ROOT/rust-modules"
+FRONTEND_WASM_DIR="$PROJECT_ROOT/frontend/src/wasm"
+CARGO_BIN_DIR="$HOME/.cargo/bin"
+
+# Add Cargo bin directory to PATH for local installs
+if [[ -d "$CARGO_BIN_DIR" && ":$PATH:" != *":$CARGO_BIN_DIR:"* ]]; then
+    export PATH="$CARGO_BIN_DIR:$PATH"
+fi
 
 # Create wasm directory if it doesn't exist
 mkdir -p "$FRONTEND_WASM_DIR"
 
 # Array of modules to build
 MODULES=("data-engine" "chart-renderer" "query-optimizer" "parallel-compute")
+
+# Ensure wasm-pack is available
+if ! command -v wasm-pack >/dev/null 2>&1; then
+    echo "wasm-pack not found. Please install it with:\n  cargo install wasm-pack" >&2
+    exit 1
+fi
 
 # Build each module
 for module in "${MODULES[@]}"; do
